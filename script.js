@@ -14,7 +14,7 @@ function addMessage(text, sender) {
 
 // Function to send user input to Llama API
 async function getBotResponse(userMessage) {
-    const apiUrl = 'https://rapidapi.com/Glavier/api/llama-3-3-70b-instruct'; // Replace with the actual API URL for Llama
+    const apiUrl = 'https://llama-3-3-70b-instruct.p.rapidapi.com/chat_completions'; // Use the Llama 3.3 70B API URL
     const apiKey = '80227b24fcmsh83e89e880d2f6afp1229bdjsn6567d73b9c6c'; // Your RapidAPI key
 
     try {
@@ -23,18 +23,25 @@ async function getBotResponse(userMessage) {
             headers: {
                 'Content-Type': 'application/json',
                 'X-RapidAPI-Key': '80227b24fcmsh83e89e880d2f6afp1229bdjsn6567d73b9c6c',
-                'X-RapidAPI-Host': 'llama3-3-70b.p.rapidapi.com', // Make sure the host matches your API
+                'X-RapidAPI-Host': 'llama-3-3-70b-instruct.p.rapidapi.com', // Correct API Host
             },
             body: JSON.stringify({
-                prompt: userMessage,
-                max_tokens: 150, // Set token length as needed
-                temperature: 0.7, // Control randomness (lower = more deterministic)
+                prompt: userMessage,  // Send user input as a prompt
+                max_tokens: 150,      // You can adjust this depending on how long the response should be
+                temperature: 0.7,     // Control response randomness
+                top_p: 1.0,          // You can add additional parameters like top_p
+                n: 1,                // Number of responses you want to receive
             })
         });
 
         const data = await response.json();
-        const botResponse = data.text || 'I did not get that. Can you try again?';
-        addMessage(botResponse, 'bot');
+
+        if (data && data.choices && data.choices.length > 0) {
+            const botResponse = data.choices[0].text.trim(); // Parse the response
+            addMessage(botResponse, 'bot');
+        } else {
+            addMessage('Sorry, I did not get a response. Please try again.', 'bot');
+        }
     } catch (error) {
         console.error('Error fetching API:', error);
         addMessage('Sorry, there was an error. Please try again later.', 'bot');
